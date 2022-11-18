@@ -26,7 +26,7 @@ export default class Database {
                         console.log("Erro Recebido: ", error);
                         console.log("O Banco de dados não está pronto ... Criando Dados");
                         db.transaction((tx) => {
-                            tx.executeSql('CREATE TABLE IF NOT EXISTS veiculo (id INTEGER PRIMARY KEY AUTOINCREMENT, marca VARCHAR(30), modelo VARCHAR(30), ano INTEGER, cor VARCHAR(30) )');
+                            tx.executeSql('CREATE TABLE IF NOT EXISTS veiculo (id INTEGER PRIMARY KEY AUTOINCREMENT, marca VARCHAR(30), modelo VARCHAR(30), ano INTEGER, cor VARCHAR(30), status varchar(30) )');
                         }).then(() => {
                             console.log("Tabela criada com Sucesso");
                         }).catch(error => {
@@ -68,8 +68,8 @@ export default class Database {
                         var len = results.rows.length;
                         for (let i = 0; i < len; i++) {
                             let row = results.rows.item(i);
-                            const { id, marca, modelo, ano, cor } = row;
-                            lista.push({ id, marca, modelo, ano, cor });
+                            const { id, marca, modelo, ano, cor, status } = row;
+                            lista.push({ id, marca, modelo, ano, cor, status });
                         }
                         console.log(lista);
                         resolve(lista);
@@ -114,7 +114,7 @@ export default class Database {
             this.Conectar().then((db) => {
                 db.transaction((tx) => {
                     //Query SQL para inserir um novo produto   
-                    tx.executeSql('INSERT INTO veiculo (marca, modelo, ano, cor) VALUES (?, ?, ?, ?)', [item.marca, item.modelo, item.ano, item.cor]).then(([tx, results]) => {
+                    tx.executeSql('INSERT INTO veiculo (marca, modelo, ano, cor, status) VALUES (?, ?, ?, ?, ?)', [item.marca, item.modelo, item.ano, item.cor, item.status]).then(([tx, results]) => {
                         resolve(results);
                     });
                 }).then((result) => {
@@ -128,25 +128,62 @@ export default class Database {
         });
     }
 
-    /*
-    updateProduct(id, prod) {  
-        return new Promise((resolve) => {    
-            this.initDB().then((db) => {      
+    UpdateVenda(id) {
+        return new Promise((resolve) => {
+            this.Conectar().then((db) => {
                 db.transaction((tx) => {
-                    //Query SQL para atualizar um dado no banco        
-                    tx.executeSql('UPDATE Produtos SET nome = ?, descricao = ?, imagem = ?, preco = ? WHERE id = ?', [prod.nome, prod.descricao, prod.imagem, prod.preco, id]).then(([tx, results]) => {          
-                    resolve(results);        
-                });      
-            }).then((result) => {        
-                  this.closeDatabase(db);      
-                }).catch((err) => {        
-                  console.log(err);      
-                });    
-            }).catch((err) => {     
-                console.log(err);    
-            });  
-        });  
-    }*/
+                    tx.executeSql('UPDATE veiculo SET status="A venda" WHERE id = ?', [id]).then(([tx, results]) => {
+                        console.log(results);
+                        resolve(results);
+                    });
+                }).then((result) => {
+                    this.Desconectar(db);
+                }).catch((err) => {
+                    console.log(err);
+                });
+            }).catch((err) => {
+                console.log(err);
+            });
+        });
+    } 
+
+    UpdateVendido(id) {
+        return new Promise((resolve) => {
+            this.Conectar().then((db) => {
+                db.transaction((tx) => {
+                    tx.executeSql('UPDATE veiculo SET status="Vendido" WHERE id = ?', [id]).then(([tx, results]) => {
+                        console.log(results);
+                        resolve(results);
+                    });
+                }).then((result) => {
+                    this.Desconectar(db);
+                }).catch((err) => {
+                    console.log(err);
+                });
+            }).catch((err) => {
+                console.log(err);
+            });
+        });
+    }
+
+    UpdateManutencao(id) {
+        return new Promise((resolve) => {
+            this.Conectar().then((db) => {
+                db.transaction((tx) => {
+                    tx.executeSql('UPDATE veiculo SET status="Em manutenção" WHERE id = ?', [id]).then(([tx, results]) => {
+                        console.log(results);
+                        resolve(results);
+                    });
+                }).then((result) => {
+                    this.Desconectar(db);
+                }).catch((err) => {
+                    console.log(err);
+                });
+            }).catch((err) => {
+                console.log(err);
+            });
+        });
+    }    
 
     Remover(id) {
         return new Promise((resolve) => {
